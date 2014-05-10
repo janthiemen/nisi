@@ -148,10 +148,13 @@ enyo.kind({
 	kind: "FittableRows",
 	classes: "mochi mochi-sample enyo-unselectable enyo-fit",
 	components: [
-		{kind: "mochi.Header", content: "NISI", components: [
+		{kind: "mochi.MoreToolbar", header: true, components: [
+			{components: [{content: "NISI", classes: "mochi-toolbar-header-content"}]},
+			{fit: true},
 			{kind: "mochi.IconButton", name: "favorite", src: "assets/favorite_hover.png", ontap: "favoriteItem"},
 			{kind: "mochi.IconButton", name: "archive", src: "assets/done_hover.png", ontap: "archiveItem"},
 			{kind: "mochi.IconButton", name: "delete", src: "assets/delete_hover.png", ontap: "deleteItem"},
+
 			{kind: "mochi.Button", content: "Open", ontap:"openInBrowser"},
 			{kind: "mochi.PickerDecorator", components: [
 				{kind: "mochi.Picker", name: "sortPicker", ontap: "sortChanged", items:[

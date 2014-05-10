@@ -106,3 +106,10 @@
 		border-top-left-radius: 0px;		
 	}
 }
+
+.picker-button-icon {
+	width: 18px;
+	height: 18px; 
+	margin-top:8px;
+	background-image: url("../images/pointer18x18.png");
+}
