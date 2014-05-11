@@ -1,0 +1,11 @@
+{
+  "app": "org.scoutline.app.nisi",
+  "icon": "icon.png",
+  "id": "org.scoutline.app.nisi",
+  "loc_name": "NISI",
+  "miniicon": "icon.png",
+  "package_format_version": 2,
+  "vendor": "Jan Thiemen Postema.",
+  "vendorurl": "https://github.com/janthiemen/nisi",
+  "version": "1.0.1"
+}
