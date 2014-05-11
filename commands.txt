@@ -1,8 +1,0 @@
-cd application & node enyo/tools/deploy.js
-cd ../ & palm-install -r org.scoutline.app.nisi
-del org.scoutline.app.nisi_1.0.1_all.ipk
-palm-package application\deploy\application package
-palm-install org.scoutline.app.nisi_1.0.1_all.ipk
-
-! Move the onyx.Button (Button.js) line in the build file to line 126 or lower, or it will crash!
-!move the images folder from the application folder to the application/deploy/application folder
