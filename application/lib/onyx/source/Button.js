@@ -18,35 +18,46 @@ enyo.kind({
 	name: "onyx.Button",
 	kind: "enyo.Button",
 	classes: "onyx-button enyo-unselectable",
-	//* @protected
-	create: function() {
-		//workaround for FirefoxOS which doesn't support :active:hover css selectors
-		//FirefoxOS simulator does :active:hover css selectors, so do additional srcEvent check
-		if(enyo.platform.firefoxOS) {
-			this.handlers.ondown = "fxosDown";
-			this.handlers.onenter = "fxosEnter";
-			this.handlers.ondrag = "fxosDrag";
-			this.handlers.onleave = "fxosLeave";
-			this.handlers.onup = "fxosUp";
+	handlers: {
+		ondown: "down",
+		onenter: "enter",
+		ondragfinish: "dragfinish",
+		onleave: "leave",
+		onup: "up"
+	},
+	down: function(inSender, inEvent) {
+		if (this.disabled) {
+			return true;
 		}
-		this.inherited(arguments);
-	},
-	fxosDown: function(inSender, inEvent) {
 		this.addClass("pressed");
-		this._isInControl = true;
+		this._isPressed = true;
 	},
-	fxosEnter: function(inSender, inEvent) {
-		this._isInControl = true;
+	enter: function(inSender, inEvent) {
+		if (this.disabled) {
+			return true;
+		}
+		if(this._isPressed) {
+			this.addClass("pressed");
+		}
 	},
-	fxosDrag: function(inSender, inEvent) {
-		this.addRemoveClass("pressed", this._isInControl);
-	},
-	fxosLeave: function(inSender, inEvent) {
+	dragfinish: function(inSender, inEvent) {
+		if (this.disabled) {
+			return true;
+		}
 		this.removeClass("pressed");
-		this._isInControl = false;
+		this._isPressed = false;
 	},
-	fxosUp: function(inSender, inEvent) {
+	leave: function(inSender, inEvent) {
+		if (this.disabled) {
+			return true;
+		}
 		this.removeClass("pressed");
-		this._isInControl = false;
+	},
+	up: function(inSender, inEvent) {
+		if (this.disabled) {
+			return true;
+		}
+		this.removeClass("pressed");
+		this._isPressed = false;
 	}
 });

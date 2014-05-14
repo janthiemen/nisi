@@ -36,16 +36,17 @@ enyo.kind({
 	names: [],
 	create: function() {
 		this.inherited(arguments);
+		this.type = "articles";
 		services[localStorage.service].getArticles(this, this.handleArticles);
 		//this.$.list.setCount(this.articles.length);
 		//this.$.list.reset();
 	},
-	handleArticles: function(self, list) {
-		console.log(self);
+	handleArticles: function(self, list, archive) {
 		self.articles = list;
+		self.archive = archive;
 		//We default to sorting on newest first
 		self.articles.sort(sortFunctions["newest"]);
-		console.log(self.articles);
+		self.ready = true;
 		self.$.list.setCount(self.articles.length);
 		self.$.list.reset();
 		self.$.loading.hide();
@@ -53,33 +54,38 @@ enyo.kind({
 	setupItem: function(inSender, inEvent) {
 		// this is the row we're setting up
 		var i = inEvent.index;
-		var n = this.articles[i];
+		var n = this[this.type][i];
 		this.$.name.setContent(n.title);
 	},
 	itemSelected: function(inSender, inEvent) {
 		//Should be done using an event, I know ...
-		window.main.getArticle(this.articles[inEvent.index].url, this.articles[inEvent.index].title, this.articles[inEvent.index].id, this.articles[inEvent.index].favorite);
+		window.main.getArticle(this[this.type][inEvent.index].url, this[this.type][inEvent.index].title, this[this.type][inEvent.index].id, this[this.type][inEvent.index].favorite);
 	},
-	sortChanged: function(method) {
-		this.$.loading.show();
-		this.articles.sort(sortFunctions[method]);
-		this.$.list.setCount(this.articles.length);
-		this.$.list.reset();
-		this.$.loading.hide();
+	sortChanged: function(status, method) {
+		if(this.ready) {
+			this.$.loading.show();
+			if (status.toLowerCase() == "archive") var type = "archive";
+			else var type = "articles";
+			this.type = type;
+			this[type].sort(sortFunctions[method]);
+			this.$.list.setCount(this[type].length);
+			this.$.list.reset();
+			this.$.loading.hide();
+		}
 	},
 	deleteItem: function(articleId) {
-		var deleteArticle = articles.filter(function (element) { 
+		var deleteArticle = this[this.type].filter(function (element) { 
 			return element.id === articleId;
 		});
-		var index = this.articles.indexOf(deleteArticle[0]);
+		var index = this[this.type].indexOf(deleteArticle[0]);
 		if (index > -1) {
 			console.log("Delete article:");
-			console.log(this.articles[index]);
-			this.articles.splice(index, 1);
+			console.log(this[this.type][index]);
+			this[this.type].splice(index, 1);
 		} else {
 			console.log("Couldn't find article");
 		}
-		this.$.list.setCount(this.articles.length);
+		this.$.list.setCount(this[this.type].length);
 		this.$.list.reset();
 		this.$.loading.hide();
 	}
@@ -177,14 +183,22 @@ enyo.kind({
 				]}
 			]},
 			{name: "listPanel", components: [
-				{kind: "mochi.Subheader", content: "Articles"},
-				{tag: "br"}
+				//{kind: "mochi.Subheader", content: "Articles"},
+				{tag: "br"},
+				{kind: "FittableColumns", name: "typeBar", style: "text-align: center", components: [
+					{kind: "onyx.RadioGroup", classes: "mochi-tabbar", onActivate:"typeChanged", controlClasses: "mochi-tabbutton", components: [
+						{content: "List", kind: "onyx.RadioButton", active: true},
+						//{content: "Favorites", kind: "onyx.RadioButton"},
+						{content: "Archive", kind: "onyx.RadioButton"}
+					]}
+				]}
 			]},
 		]}
 	],
 	create: function() {
 		this.inherited(arguments);
 		window.main = this;
+		this.type = "list";
 		if(localStorage.setupDone != "true") {
 			var lib = new localStorageDB("storage", localStorage);
 			lib.createTable("articles", ["url", "title", "content"]);
@@ -199,18 +213,31 @@ enyo.kind({
 		}
 		this.$.servicePicker.createComponent({kind: "mochi.Picker", ontap: "serviceSelected", items: serviceItems}, {owner: this});
 		if(localStorage.getItem(localStorage.service) === null) {
+			this.$.typeBar.hide();
 			if(services[localStorage.service].type == "oauth") {
 				this.$.listPanel.createComponent({name: "serviceWindow", kind: "nisi.login.oauth"}, {owner: this});
 			} else {
 				this.$.listPanel.createComponent({name: "serviceWindow", kind: "nisi.login.xauth"}, {owner: this});
 			}
 		} else {
+			this.$.typeBar.show();
 			this.$.listPanel.createComponent({name: "serviceWindow", kind: "nisi.articles.list", onSelect: "getUrl"}, {owner: this});
 		}
 		this.render();
 		this.$.articleLoading.hide();
 		//Open the article view
 		this.$.mainPanels.setIndex(1);
+		this.ready = true;
+	},
+	typeChanged: function(inSender, inEvent) {
+		if(this.ready) {
+			console.log(inEvent.originator.content);
+			var type = inEvent.originator.content.toLowerCase();
+			if(type != this.type) {
+				this.type = type;
+				this.$.serviceWindow.sortChanged(this.type, this.sort);
+			}
+		}
 	},
 	//Check if the user has added a favorite service, if not, load Pocket
 	getMainService: function() {
@@ -222,12 +249,14 @@ enyo.kind({
 		this.setCurrentService(inEvent.content);
 		this.$.serviceWindow.destroy();
 		if(localStorage.getItem(localStorage.service) === null) {
+			this.$.typeBar.hide();
 			if(services[localStorage.service].type == "oauth") {
 				this.$.listPanel.createComponent({name: "serviceWindow", kind: "nisi.login.oauth"}, {owner: this});
 			} else {
 				this.$.listPanel.createComponent({name: "serviceWindow", kind: "nisi.login.xauth"}, {owner: this});
 			}
 		} else {
+			this.$.typeBar.show();
 			this.$.listPanel.createComponent({name: "serviceWindow", kind: "nisi.articles.list"}, {owner: this});
 		}
 		this.render();
@@ -238,6 +267,7 @@ enyo.kind({
 	},
 	goToList: function(parent) {
 		this.$.serviceWindow.destroy();
+		this.$.typeBar.show();
 		this.$.listPanel.createComponent({name: "serviceWindow", kind: "nisi.articles.list"}, {owner: this});
 	},
 	//Download the article's text and show it in the reading screen. Also, set the current url to the selected article.
@@ -248,6 +278,7 @@ enyo.kind({
 		this.showArticle(title, "");
 		this.$.articleLoading.show();
 		console.log(url);
+		this.$.mainPanels.setIndex(0);
 		this.currentTitle = title;
 		this.currentUrl = url;
 		var lib = new localStorageDB("storage", localStorage);
@@ -318,7 +349,8 @@ enyo.kind({
 	//We changed the sorting, so lets fire a command to the article list component
 	sortChanged: function(inSender, inEvent) {
 		console.log(inEvent.content);
-		this.$.serviceWindow.sortChanged(inEvent.content.toLowerCase());
+		this.sort = inEvent.content.toLowerCase();
+		this.$.serviceWindow.sortChanged(this.status, this.sort);
 	},
 	openInBrowser: function() {
 		window.open(this.currentUrl);

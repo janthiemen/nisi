@@ -1,5 +1,5 @@
 /* WARNING: This is a generated file for backward-compatibility.  Most      */
-/* usrs should instead modify LESS files.  If you choose to edit this CSS   */
+/* users should instead modify LESS files.  If you choose to edit this CSS  */
 /* directly rather than LESS files, you should make sure less.xx.yy.min.js  */
 /* is commented out in your debug.html, and run deploy.sh/bat using the     */
 /* '-c' flag to disable LESS compilation.  This will force the loader and   */
@@ -64,16 +64,12 @@
 }
 .onyx-icon.onyx-icon-button.active,
 .onyx-icon.onyx-icon-button.pressed,
-.onyx-icon.onyx-icon-button:active:hover,
 .onyx-icon-toggle.active {
   background-position: 0 -32px;
 }
 .onyx-icon.disabled {
   opacity: 0.4;
   filter: alpha(opacity=40);
-}
-.onyx-icon.disabled:active:hover {
-  background-position: 0 0px;
 }
 /* Button.css */
 .onyx-button {
@@ -122,12 +118,6 @@
 */
 .onyx-button.active,
 .onyx-button.pressed {
-  background-image: url("../images/gradient-invert.png");
-  background-position: top;
-  border-top: 1px solid rgba(15, 15, 15, 0.6);
-  box-shadow: inset 0px 1px 0px rgba(0, 0, 0, 0.1);
-}
-.onyx-button:active:hover:not([disabled]) {
   background-image: url("../images/gradient-invert.png");
   background-position: top;
   border-top: 1px solid rgba(15, 15, 15, 0.6);
@@ -198,6 +188,10 @@
   border-radius: 0;
   margin: 0;
   font-size: 16px;
+}
+/* needed for MathJax support */
+.onyx-groupbox > script {
+  display: none;
 }
 .onyx-groupbox > *:first-child {
   border-top-color: #aaaaaa;
@@ -469,12 +463,13 @@
   box-shadow: inset 1px 1px 0px rgba(255, 255, 255, 0.2);
 }
 .onyx-radiobutton:first-child {
-  border-radius: 3px 0 0 3px;
+  /*border-radius: 3px 0 0 3px;*/
+  border-radius: 37px 37px 37px 37px;
 }
 .onyx-radiobutton:last-child {
-  border-radius: 0px 3px 3px 0px;
+  /*border-radius: 0px 3px 3px 0px;
   /* IE8 */
-
+  border-radius: 37px 37px 37px 37px;
   border-right: 1px solid #333333;
   border-right: 1px solid rgba(15, 15, 15, 0.2);
 }
@@ -483,6 +478,7 @@
   background: #0091f2 url("../images/gradient-invert.png") repeat-x top;
   border-top: 1px solid rgba(15, 15, 15, 0.6);
   box-shadow: inset 1px 2px 2px rgba(0, 0, 0, 0.2);
+  border-radius: 37px 37px 37px 37px;
 }
 /* Scrim.css */
 .onyx-scrim {
@@ -510,6 +506,9 @@
   padding: 8px 34px;
   font-size: 20px;
   border-radius: 0px;
+}
+.onyx-radiobutton.onyx-tabbutton.active {
+  border-radius: 37px 37px 37px 37px;
 }
 /* TabBar.css */
 .onyx-tab-bar {
@@ -741,6 +740,11 @@
   margin: 4px 6px 5px;
   box-sizing: border-box;
 }
+/* needed for MathJax support */
+.onyx-toolbar-inline > script,
+.enyo-fittable-columns-layout.onyx-toolbar-inline > script {
+  display: none;
+}
 .onyx-toolbar .onyx-icon-button {
   margin: 3px 2px 1px;
 }
@@ -924,6 +928,10 @@
 .onyx-progress-button-client > * {
   display: inline-block;
 }
+/* needed for MathJax support */
+.onyx-progress-button-client > script {
+  display: none;
+}
 /* Slider.css */
 .onyx-slider {
   position: relative;
@@ -943,8 +951,7 @@
   margin: -23px -20px;
 }
 .onyx-slider-knob.active,
-.onyx-slider-knob.pressed,
-.onyx-slider-knob:active:hover {
+.onyx-slider-knob.pressed {
   background-position: 0 -40px;
 }
 /* RangeSlider.css */

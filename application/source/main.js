@@ -13,7 +13,7 @@ var services = {
 			authObject = JSON.parse(localStorage.pocket);
 			console.log(authObject);
 			token = authObject.token;
-			jsonString = '{"consumer_key": "INSERT_CONSUMER_KEY", "access_token": "'+token+'", "sort": "newest", "since": "'+authObject.since+'", "detailType": "simple"}';
+			jsonString = '{"consumer_key": "16297-b6a29ebe92585e0ce5f52ae0", "access_token": "'+token+'", "sort": "newest", "since": "'+authObject.since+'", "detailType": "simple", "state": "all"}';
 			$.ajax({
 				type: 'POST',
 				url: 'https://getpocket.com/v3/get',
@@ -24,14 +24,20 @@ var services = {
 					console.log(data);
 					//Reorder the data so that we have a general article list.
 					articles = [];
+					archive = [];
 					if(localStorage.getItem("pocketList") === null) {
 						for (var key in data.list) {
 							var date = new Date(data.list[key].time_added*1000);
 							data.list[key].favorite == "0"? favorite=false : favorite=true;
-							articles.push({url:data.list[key].resolved_url, title: data.list[key].resolved_title, date: date, id: data.list[key].item_id, favorite: favorite});
+							if(data.list[key].status == 0) {
+								articles.push({url:data.list[key].resolved_url, title: data.list[key].resolved_title, date: date, id: data.list[key].item_id, favorite: favorite});
+							} else if(data.list[key].status == 1) {
+								archive.push({url:data.list[key].resolved_url, title: data.list[key].resolved_title, date: date, id: data.list[key].item_id, favorite: favorite});
+							}
 						}
 					} else {
 						articles = JSON.parse(localStorage.getItem("pocketList"));
+						archive = JSON.parse(localStorage.getItem("pocketArchive"));
 						for (var key in data.list) {
 							//console.log(data.list[key]);
 							var date = new Date(data.list[key].time_added*1000);
@@ -45,19 +51,32 @@ var services = {
 								console.log(articles[index]);
 								articles.splice(index, 1);
 							} else {
-								console.log("Couldn't find article");
+								console.log("Couldn't find article in list, checking archive");
+								var index = archive.indexOf(deleteArticle[0]);
+								if (index > -1) {
+									console.log("Delete article:");
+									console.log(archive[index]);
+									archive.splice(index, 1);
+								} else {
+									console.log("Couldn't find article in archive");
+								}
 							}
 							if(data.list[key].status == 0) {
 								//The article should be added
 								data.list[key].favorite == "0"? favorite=false : favorite=true;
 								articles.push({url:data.list[key].resolved_url, title: data.list[key].resolved_title, date: date, id: data.list[key].item_id, favorite: favorite});
+							} else if(data.list[key].status == 1) {
+								//The article should be archived
+								data.list[key].favorite == "0"? favorite=false : favorite=true;
+								archive.push({url:data.list[key].resolved_url, title: data.list[key].resolved_title, date: date, id: data.list[key].item_id, favorite: favorite});
 							}
 						}
 					}
 					authObject.since = data.since;
 					localStorage.pocket = JSON.stringify(authObject);
 					localStorage.pocketList = JSON.stringify(articles);
-					callback(self, articles)
+					localStorage.pocketArchive = JSON.stringify(archive);
+					callback(self, articles, archive);
 				},
 				error: function(xhr, type){
 					alert('Ajax error!');
@@ -80,7 +99,7 @@ var services = {
 			authObject = JSON.parse(localStorage.pocket);
 			console.log(authObject);
 			token = authObject.token;
-			jsonString = '{"consumer_key": "INSERT_CONSUMER_KEY", "access_token": "'+token+'", "actions": [{"action":"'+type+'","item_id":"'+id+'"}]}';
+			jsonString = '{"consumer_key": "16297-b6a29ebe92585e0ce5f52ae0", "access_token": "'+token+'", "actions": [{"action":"'+type+'","item_id":"'+id+'"}]}';
 			$.ajax({
 				type: 'POST',
 				url: 'https://getpocket.com/v3/send',
@@ -103,8 +122,8 @@ var services = {
 		"createAccount": function(username,password, parent) {
 			// post a JSON payload:
 			//jsonString = '{"consumer_key": "16297-b6a29ebe92585e0ce5f52ae0", "access_token": "'+token+'", "sort": "newest", "since": "'+authObject.since+'", "detailType": "simple"}';
-			var apiKey = "INSERT_APPLICATION_KEY";
-            var sharedSecret = "INSERT_CONSUMER_KEY";
+			var apiKey = "janthiemen";
+            var sharedSecret = "GqSmJ3a6A52JKS75EGKRqVp8fKVdKhyz";
 
             var path="https://www.readability.com/api/rest/v1/oauth/access_token/";
             var argumentsAsObject = {
@@ -150,14 +169,14 @@ var services = {
 			authObject = JSON.parse(localStorage.readability);
 			console.log(authObject);
 			
-			var apiKey = "INSERT_APPLICATION_KEY";
-            var sharedSecret = "INSERT_CONSUMER_KEY";
+			var apiKey = "janthiemen";
+            var sharedSecret = "GqSmJ3a6A52JKS75EGKRqVp8fKVdKhyz";
 			var accessToken = authObject.oauth_token;
             var tokenSecret = authObject.oauth_token_secret;
 			
             var path="https://www.readability.com/api/rest/v1/bookmarks/";
             var argumentsAsObject = {
-				'archive': '0',
+				//'archive': '0',
 				'consumer_key':apiKey, 
 				'shared_secret': sharedSecret,
 				'access_token':accessToken,
@@ -185,14 +204,18 @@ var services = {
 						//We don't sync here, as it would require two calls, making the app much slower than when we don't and just load all articles every time
 						bookmarks = data.bookmarks
 						articles = [];
+						archive = [];
 						for (var i = 0; i < bookmarks.length; i++) {
 							bookmark = bookmarks[i];
-							console.log(bookmark.id);
 							var date = new Date(bookmark.date_updated);
 							bookmark.favorite == "0"? favorite=false : favorite=true;
-							articles.push({url: bookmark.article.url, title: bookmark.article.title, date: date, id: bookmark.id, favorite: favorite});
-						}
-						callback(self, articles);
+							if(bookmark.archive == true) {
+								archive.push({url: bookmark.article.url, title: bookmark.article.title, date: date, id: bookmark.id, favorite: favorite});
+							} else {
+								articles.push({url: bookmark.article.url, title: bookmark.article.title, date: date, id: bookmark.id, favorite: favorite});
+							}
+						}						
+						callback(self, articles, archive);
 					},
 					error: function(xhr, type){
 						alert('Ajax error!');
@@ -207,8 +230,8 @@ var services = {
 			authObject = JSON.parse(localStorage.readability);
 			console.log(authObject);
 			
-			var apiKey = "INSERT_APPLICATION_KEY";
-            var sharedSecret = "INSERT_CONSUMER_KEY";
+			var apiKey = "janthiemen";
+            var sharedSecret = "GqSmJ3a6A52JKS75EGKRqVp8fKVdKhyz";
 			var accessToken = authObject.oauth_token;
             var tokenSecret = authObject.oauth_token_secret;
 			
