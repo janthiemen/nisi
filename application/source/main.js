@@ -13,7 +13,7 @@ var services = {
 			authObject = JSON.parse(localStorage.pocket);
 			console.log(authObject);
 			token = authObject.token;
-			jsonString = '{"consumer_key": "16297-b6a29ebe92585e0ce5f52ae0", "access_token": "'+token+'", "sort": "newest", "since": "'+authObject.since+'", "detailType": "simple", "state": "all"}';
+			jsonString = '{"consumer_key": "INSERT_CONSUMER_KEY", "access_token": "'+token+'", "sort": "newest", "since": "'+authObject.since+'", "detailType": "simple", "state": "all"}';
 			$.ajax({
 				type: 'POST',
 				url: 'https://getpocket.com/v3/get',
@@ -99,7 +99,7 @@ var services = {
 			authObject = JSON.parse(localStorage.pocket);
 			console.log(authObject);
 			token = authObject.token;
-			jsonString = '{"consumer_key": "16297-b6a29ebe92585e0ce5f52ae0", "access_token": "'+token+'", "actions": [{"action":"'+type+'","item_id":"'+id+'"}]}';
+			jsonString = '{"consumer_key": "INSERT_CONSUMER_KEY", "access_token": "'+token+'", "actions": [{"action":"'+type+'","item_id":"'+id+'"}]}';
 			$.ajax({
 				type: 'POST',
 				url: 'https://getpocket.com/v3/send',
@@ -121,9 +121,9 @@ var services = {
 		"type": "xauth",
 		"createAccount": function(username,password, parent) {
 			// post a JSON payload:
-			//jsonString = '{"consumer_key": "16297-b6a29ebe92585e0ce5f52ae0", "access_token": "'+token+'", "sort": "newest", "since": "'+authObject.since+'", "detailType": "simple"}';
-			var apiKey = "janthiemen";
-            var sharedSecret = "GqSmJ3a6A52JKS75EGKRqVp8fKVdKhyz";
+			//jsonString = '{"consumer_key": "INSERT_CONSUMER_KEY", "access_token": "'+token+'", "sort": "newest", "since": "'+authObject.since+'", "detailType": "simple"}';
+			var apiKey = "INSERT_APPLICATION_KEY";
+            var sharedSecret = "INSERT_CONSUMER_KEY";
 
             var path="https://www.readability.com/api/rest/v1/oauth/access_token/";
             var argumentsAsObject = {
@@ -169,8 +169,8 @@ var services = {
 			authObject = JSON.parse(localStorage.readability);
 			console.log(authObject);
 			
-			var apiKey = "janthiemen";
-            var sharedSecret = "GqSmJ3a6A52JKS75EGKRqVp8fKVdKhyz";
+			var apiKey = "INSERT_APPLICATION_KEY";
+            var sharedSecret = "INSERT_CONSUMER_KEY";
 			var accessToken = authObject.oauth_token;
             var tokenSecret = authObject.oauth_token_secret;
 			
@@ -230,8 +230,8 @@ var services = {
 			authObject = JSON.parse(localStorage.readability);
 			console.log(authObject);
 			
-			var apiKey = "janthiemen";
-            var sharedSecret = "GqSmJ3a6A52JKS75EGKRqVp8fKVdKhyz";
+			var apiKey = "INSERT_APPLICATION_KEY";
+            var sharedSecret = "INSERT_CONSUMER_KEY";
 			var accessToken = authObject.oauth_token;
             var tokenSecret = authObject.oauth_token_secret;
 			
