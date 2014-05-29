@@ -25,7 +25,7 @@ enyo.kind({
 		{name: "loading", style: "text-align: center; margin-top:50px;", components: [
 			{kind: "onyx.Spinner", classes: "onyx-light"}
 		]},
-		{name: "list", kind: "mochi.List", count: 20000, fit: true, multiSelect: false, classes: "enyo-fit list-sample-list", onSetupItem: "setupItem", components: [
+		{name: "list", kind: "mochi.List", count: 0, fit: true, multiSelect: false, classes: "enyo-fit list-sample-list", onSetupItem: "setupItem", components: [
 			{name: "item", kind:"mochi.ListItem", url:"", ontap: "itemSelected", components: [
 				{name: "name"},
 				//{name: "url", showing: false},
@@ -54,8 +54,12 @@ enyo.kind({
 	setupItem: function(inSender, inEvent) {
 		// this is the row we're setting up
 		var i = inEvent.index;
-		var n = this[this.type][i];
-		this.$.name.setContent(n.title);
+		console.debug("articles: ",this[this.type]);
+		console.debug("i: ",i);
+		if(this[this.type]) {
+			var n = this[this.type][i];
+			this.$.name.setContent(n.title);
+		}
 	},
 	itemSelected: function(inSender, inEvent) {
 		//Should be done using an event, I know ...

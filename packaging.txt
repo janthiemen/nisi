@@ -1,7 +1,7 @@
 cd application & node enyo/tools/deploy.js
 cd ../ & palm-install -r org.scoutline.app.nisi
-del org.scoutline.app.nisi_1.0.2_all.ipk
+del org.scoutline.app.nisi_1.0.3_all.ipk
 palm-package application\deploy\application package
-palm-install org.scoutline.app.nisi_1.0.2_all.ipk
+palm-install org.scoutline.app.nisi_1.0.3_all.ipk
 
 !move the images folder from the application folder to the application/deploy/application folder
