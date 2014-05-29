@@ -1,13 +1,26 @@
 var services = {
 	"pocket": {
 		"type": "oauth",
-		"createAccount": function(token) {
+		"createAccount": function(deviceid) {
+		$.ajax({
+				type: 'GET',
+				url: 'http://kappline.nl/firefoxos/pocket/getToken.php?requestid='+deviceid,
+				// post payload:
+				contentType: 'application/json',
+				success: function(data){
+					console.log(data);
+					authObject = {
+						"token": data,
+						"since": ""
+					};
+					localStorage.pocket = JSON.stringify(authObject);
+					window.location.href="index.html";
+				},
+				error: function(xhr, type){
+					alert('Ajax error!');
+				}
+			});
 			// post a JSON payload:
-			authObject = {
-				"token": token,
-				"since": ""
-			};
-			localStorage.pocket = JSON.stringify(authObject);
 		},
 		"getArticles": function(self, callback){
 			authObject = JSON.parse(localStorage.pocket);
@@ -119,7 +132,7 @@ var services = {
 	//"instapaper": {},
 	"readability": {
 		"type": "xauth",
-		"createAccount": function(username,password, parent) {
+		"createAccount": function(username,password) {
 			// post a JSON payload:
 			//jsonString = '{"consumer_key": "INSERT_CONSUMER_KEY", "access_token": "'+token+'", "sort": "newest", "since": "'+authObject.since+'", "detailType": "simple"}';
 			var apiKey = "INSERT_APPLICATION_KEY";

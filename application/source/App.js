@@ -100,27 +100,70 @@ enyo.kind({
 	//classes: "mochi mochi-sample enyo-fit",
 	//kind: "FittableRows",
 	components: [
-		//{kind: "mochi.Subheader", content: "Login"},
-		{kind: "mochi.Button", content: "Authenticate", ontap:"openAuthPage"},
-		{kind: "mochi.InputDecorator", components: [
-			{kind: "mochi.Input", name: "tokenInput", placeholder: "Enter text here", onchange:"inputChanged"}
+		{name: "loginView", components: [
+			{kind: "mochi.Button", content: "Authenticate", ontap:"openAuthPage"},
+			/*{kind: "mochi.InputDecorator", components: [
+				{kind: "mochi.Input", name: "tokenInput", placeholder: "Enter text here", onchange:"inputChanged"}
+			]},*/
+			{kind: "mochi.Button", name: "nextButton", disabled: true, content: "Continue", ontap:"setToken"},
+			{name:"result", classes:"mochi-sample-content", content:"Please press the authenticate button, authenticate the app and then press the continue button."}
 		]},
-		{kind: "mochi.Button", content: "Continue", ontap:"setToken"},
-		{name:"result", classes:"mochi-sample-content", content:"Please press the authenticate button, authenticate the app and copy paste the code here."}
-		
+		{name: "loadingview", showing: false, components: [
+			{name: "articleLoading", style: "text-align: center; margin-top:50px;", components: [
+				{kind: "onyx.Spinner", classes: "onyx-light"}
+			]}
+		]},
 		//{name: "auth", kind: "nisi.iframe", url: "http://kappline.nl/firefoxos/pocket/auth.php", style: "border: none; width:99%; height:99%;"}
+		{
+			name: "getDeviceId",
+			kind: "enyo.PalmService",
+			service: "palm://com.palm.preferences/systemProperties",
+			method: "Get",
+			subscribe: true,
+			onComplete: "getDeviceIdComplete"
+        }
 	],
 	names: [],
 	create: function() {
 		this.inherited(arguments);
 	},
 	openAuthPage: function() {
-		window.open("http://kappline.nl/firefoxos/pocket/auth.php");
+		if (!window.PalmSystem) {
+    		// Setup some mock data
+			console.log("non palm");
+			this.deviceId = "123-abc";
+			window.open("http://kappline.nl/firefoxos/pocket/auth.php?requestid="+this.deviceId);
+			this.$.nextButton.setDisabled(false);
+    		//services[localStorage.service].createAccount(this.deviceId);
+    	} else {
+			this.$.getDeviceId.send({"key": "com.palm.properties.nduid"});
+    	}
+		
 	},
 	setToken: function() {
-		services[localStorage.service].createAccount(this.$.tokenInput.getValue());
-		window.location.href="index.html";
+		//services[localStorage.service].createAccount(this.$.tokenInput.getValue());
+		console.log(this.deviceId);
+		this.$.loginView.hide();
+		this.$.loadingview.show();
+		services[localStorage.service].createAccount(this.deviceId);
+		//window.location.href="index.html";
 		//TODO: go to article view!
+	},
+	getDeviceIdComplete: function (inSender, inResponse) {
+		/*console.debug("nduid",inSender["com.palm.properties.nduid"]);
+		console.log("inSender --------------:");
+		console.log(JSON.stringify(inSender, censor(inSender)));
+		console.log("inResponse --------------:");
+		console.log(JSON.stringify(inResponse, censor(inResponse)));
+		//console.log(inSender["com.palm.properties.nduid"]);
+		for (p in inSender) {
+			console.log(p);
+		   if (p == 'com.palm.properties.nduid') { this.deviceId = response[p]; }
+		}*/
+		this.deviceId = inResponse.data["com.palm.properties.nduid"];
+		//services[localStorage.service].createAccount(this.deviceId);
+		window.open("http://kappline.nl/firefoxos/pocket/auth.php?requestid="+this.deviceId);
+		this.$.nextButton.setDisabled(false);
 	}
 });
 
@@ -130,15 +173,21 @@ enyo.kind({
 	//kind: "FittableRows",
 	components: [
 		//{kind: "mochi.Subheader", content: "Login"},
-		{kind: "mochi.InputDecorator", components: [
-			{kind: "mochi.Input", name: "username", placeholder: "Username"}
+		{name: "loginView", components: [
+			{kind: "mochi.InputDecorator", components: [
+				{kind: "mochi.Input", name: "username", placeholder: "Username"}
+			]},
+			{kind: "mochi.InputDecorator", components: [
+				{kind: "mochi.Input", name: "password", placeholder: "Password", type:"password"}
+			]},
+			{kind: "mochi.Button", content: "Continue", ontap:"setToken"},
+			{name:"result", classes:"mochi-sample-content", content:"Please input your username and password."}
 		]},
-		{kind: "mochi.InputDecorator", components: [
-			{kind: "mochi.Input", name: "password", placeholder: "Password", type:"password"}
+		{name: "loadingview", showing: false, components: [
+			{name: "articleLoading", style: "text-align: center; margin-top:50px;", components: [
+				{kind: "onyx.Spinner", classes: "onyx-light"}
+			]}
 		]},
-		{kind: "mochi.Button", content: "Continue", ontap:"setToken"},
-		{name:"result", classes:"mochi-sample-content", content:"Please input your username and password."}
-		
 		//{name: "auth", kind: "nisi.iframe", url: "http://kappline.nl/firefoxos/pocket/auth.php", style: "border: none; width:99%; height:99%;"}
 	],
 	names: [],
@@ -146,7 +195,9 @@ enyo.kind({
 		this.inherited(arguments);
 	},
 	setToken: function() {
-		services[localStorage.service].createAccount(this.$.username.getValue(), this.$.password.getValue(), this.owner);
+		this.$.loginView.hide();
+		this.$.loadingview.show();
+		services[localStorage.service].createAccount(this.$.username.getValue(), this.$.password.getValue());
 		//this.owner.goToList();
 		//window.location.href="index.html";
 		//TODO: go to article view!
@@ -218,12 +269,14 @@ enyo.kind({
 		this.$.servicePicker.createComponent({kind: "mochi.Picker", ontap: "serviceSelected", items: serviceItems}, {owner: this});
 		if(localStorage.getItem(localStorage.service) === null) {
 			this.$.typeBar.hide();
+			this.loggedin = false;
 			if(services[localStorage.service].type == "oauth") {
 				this.$.listPanel.createComponent({name: "serviceWindow", kind: "nisi.login.oauth"}, {owner: this});
 			} else {
 				this.$.listPanel.createComponent({name: "serviceWindow", kind: "nisi.login.xauth"}, {owner: this});
 			}
 		} else {
+			this.loggedin = true;
 			this.$.typeBar.show();
 			this.$.listPanel.createComponent({name: "serviceWindow", kind: "nisi.articles.list", onSelect: "getUrl"}, {owner: this});
 		}
@@ -239,7 +292,7 @@ enyo.kind({
 			var type = inEvent.originator.content.toLowerCase();
 			if(type != this.type) {
 				this.type = type;
-				this.$.serviceWindow.sortChanged(this.type, this.sort);
+				if (this.loggedin) this.$.serviceWindow.sortChanged(this.type, this.sort);
 			}
 		}
 	},
@@ -254,12 +307,14 @@ enyo.kind({
 		this.$.serviceWindow.destroy();
 		if(localStorage.getItem(localStorage.service) === null) {
 			this.$.typeBar.hide();
+			this.loggedin = false;
 			if(services[localStorage.service].type == "oauth") {
 				this.$.listPanel.createComponent({name: "serviceWindow", kind: "nisi.login.oauth"}, {owner: this});
 			} else {
 				this.$.listPanel.createComponent({name: "serviceWindow", kind: "nisi.login.xauth"}, {owner: this});
 			}
 		} else {
+			this.loggedin = true;
 			this.$.typeBar.show();
 			this.$.listPanel.createComponent({name: "serviceWindow", kind: "nisi.articles.list"}, {owner: this});
 		}
@@ -354,7 +409,7 @@ enyo.kind({
 	sortChanged: function(inSender, inEvent) {
 		console.log(inEvent.content);
 		this.sort = inEvent.content.toLowerCase();
-		this.$.serviceWindow.sortChanged(this.status, this.sort);
+		if (this.loggedin) this.$.serviceWindow.sortChanged(this.status, this.sort);
 	},
 	openInBrowser: function() {
 		window.open(this.currentUrl);
@@ -374,20 +429,28 @@ enyo.kind({
 		else services[localStorage.service].unfavorite(this.currentId, this, this.unfavoriteDone);
 	},
 	archiveItem: function(inSender, inEvent) {
-		console.log(this.$.serviceWindow.deleteItem);
-		services[localStorage.service].archive(this.currentId, this, this.archiveDone);
+		if (this.loggedin) {
+			console.log(this.$.serviceWindow.deleteItem);
+			services[localStorage.service].archive(this.currentId, this, this.archiveDone);
+		}
 	},
 	archiveDone: function(parent, succes, articleId) {
-		parent.$.serviceWindow.deleteItem(articleId);
-		parent.showArticle("Article Title","First select an article! -->.");
+		if (this.loggedin) {
+			parent.$.serviceWindow.deleteItem(articleId);
+			parent.showArticle("Article Title","First select an article! -->.");
+		}
 	},
 	deleteItem: function(inSender, inEvent) {
-		console.log(this.$.serviceWindow.deleteItem);
-		services[localStorage.service].delete(this.currentId, this, this.archiveDone);
+		if (this.loggedin) {
+			console.log(this.$.serviceWindow.deleteItem);
+			services[localStorage.service].delete(this.currentId, this, this.archiveDone);
+		}
 	},
 	deleteDone: function(parent, succes, articleId) {
-		parent.$.serviceWindow.deleteItem(articleId);
-		parent.showArticle("Article Title","First select an article! -->.");
+		if (this.loggedin) {
+			parent.$.serviceWindow.deleteItem(articleId);
+			parent.showArticle("Article Title","First select an article! -->.");
+		}
 	},
 	favoriteDone: function(parent, succes) {
 		if(succes) {
